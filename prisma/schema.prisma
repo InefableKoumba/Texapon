@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//Shemas de nos table en prisma
+
+//model zone : qui détermine les régions (BZV-POOL / PNR-KOUILOU / UPCN / UPCS)
+model Zone {
+  zone_id   Int     @id @default(autoincrement())
+  name_zone String?
+  sites     Site[]
+}
+
+//model site : qui regroupe tous les sites des différentes zones
+model Site {
+  id              Int         @id @default(autoincrement())
+  id_site         String      @unique
+  name            String
+  matricule_agent String?
+  site_sne        Boolean     @default(true)
+  zone            Zone        @relation(fields: [zone_id], references: [zone_id])
+  zone_id         Int
+  genarators      Generator[]
+}
+
+//model generator : qui regroupe tous les générateur des différentes sites classés par zone
+model Generator {
+  id                    Int          @id @default(autoincrement())
+  serial_number         String       @unique
+  model_generator       String
+  regime_fonctionnement Int
+  capacity              String
+  Site                  Site         @relation(fields: [id_site], references: [id_site])
+  id_site               String
+  traitements           Traitement[]
+}
+
+//model traitement : qui regroupe tous les traitements des vidanges qui seront effectués sur les générateurs
+//(Calculs / Planification / Suivie)
+model Traitement {
+  id                                Int             @id @default(autoincrement())
+  EtatTraitement                    EtatTraitements @default(ASSIGNED)
+  date_estimative_prochaine_vidange DateTime?
+  generator                         Generator       @relation(fields: [generator_id], references: [id])
+  generator_id                      Int
+  agent                             Agent           @relation(fields: [agent_id], references: [id])
+  agent_id                          Int
+  vidanges                          Vidange[]
+}
+
+model Vidange {
+  id                 Int        @id @default(autoincrement())
+  date_exec          DateTime?
+  nbre_heures        Int
+  nbre_heures_retard Int        @default(0)
+  traitement_id      Int
+  traitement         Traitement @relation(fields: [traitement_id], references: [id])
+}
+
+//model Agent : qui regroupe tous les agents du service qui utileront l'application mobile et desktop
+model Agent {
+  id              Int          @id @default(autoincrement())
+  matricule_agent String       @unique
+  nom             String
+  prenom          String
+  poste           Postes
+  service         Services
+  username        String?
+  password        String?
+  traitements     Traitement[]
+}
+
+//enumeration des service et poste
+//Postes
+enum Postes {
+  FIELDS_ENGINEER
+  FIELDS_SUPERVISOR
+  SERVICE_PLANIFICATION
+  ANALYSTE_MAINTENANCE
+}
+
+//Services
+enum Services {
+  SERVICE_HTC
+  CLIENT_DIVERS
+}
+
+//Etat traitements vidanges
+enum EtatTraitements {
+  ASSIGNED
+  WORKING_PROGRESS
+  CLOSED_COMPLETE
+}
