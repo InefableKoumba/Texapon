@@ -1,6 +1,5 @@
 //importation du model zone dans le controller zone
 import { PrismaClient } from "@prisma/client";
-import dayjs from "dayjs";
 import { Request, Response } from "express";
 //nouvelle instance de prisma
 const prisma = new PrismaClient();
