@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Agent" ALTER COLUMN "password" DROP DEFAULT,
-ALTER COLUMN "username" DROP DEFAULT;
